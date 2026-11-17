@@ -1,0 +1,114 @@
+<!-- src/main/resources/templates/admin_items.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>品目マスタ管理 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>品目マスタ一覧</h2>
+        <a th:href="@{/admin/items/new}" class="btn btn-primary">＋ 新規品目登録</a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>種別</th>
+                        <th>カテゴリ</th>
+                        <th>品名</th>
+                        <th>在庫状況</th>
+                        <th class="text-center">アクション</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${itemPage.content}">
+                        <td th:text="${item.id}"></td>
+                        <td>
+                            <span th:if="${item.itemType.name() == 'EQUIPMENT'}" class="badge bg-info text-dark">備品</span>
+                            <span th:if="${item.itemType.name() == 'CONSUMABLE'}" class="badge bg-secondary">消耗品</span>
+                        </td>
+                        <td th:text="${item.category}"></td>
+                        <td class="fw-bold" th:text="${item.name}"></td>
+                        <td>
+                            <!-- 消耗品の在庫表示 -->
+                            <span th:if="${item.itemType.name() == 'CONSUMABLE'}">
+                                現在庫: <span th:text="${item.stockQuantity}" th:classappend="${item.stockQuantity <= item.safeStockCount} ? 'text-danger fw-bold' : ''"></span> 
+                                <span class="text-muted small">/ 安全基準: <span th:text="${item.safeStockCount}"></span></span>
+                            </span>
+                            <!-- 備品の在庫表示（貸出可能な個体数を計算して表示） -->
+                            <span th:if="${item.itemType.name() == 'EQUIPMENT'}">
+                                <span th:with="availableCount=${item.equipmentUnits.?[status.name() == 'AVAILABLE'].size()}">
+                                    貸出可能: <span th:text="${availableCount}" th:classappend="${availableCount <= item.safeStockCount} ? 'text-danger fw-bold' : ''"></span>
+                                    <span class="text-muted small">/ 安全基準: <span th:text="${item.safeStockCount}"></span></span>
+                                </span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a th:if="${item.itemType.name() == 'EQUIPMENT'}" 
+                                   th:href="@{/admin/items/{id}/units(id=${item.id})}" 
+                                   class="btn btn-sm btn-outline-info">個体管理</a>
+                                 
+                                <a th:if="${item.itemType.name() == 'CONSUMABLE'}"
+                                   th:href="@{/admin/items/{id}/adjust(id=${item.id})}"
+                                   class="btn btn-sm btn-outline-warning">在庫調整</a>
+
+                                <form th:action="@{/admin/items/{id}/delete(id=${item.id})}" method="post" class="m-0">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('この品目を削除します。よろしいですか？');">削除</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${itemPage.empty}">
+                        <td colspan="6" class="text-center text-muted py-4">登録されている品目がありません。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ページネーション -->
+    <nav th:if="${itemPage.totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${itemPage.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/items(page=0)}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${!itemPage.hasPrevious()} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/items(page=${itemPage.number - 1})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, itemPage.totalPages - 1)}" 
+                th:classappend="${i == itemPage.number} ? 'active'"
+                th:if="${i >= itemPage.number - 2 and i <= itemPage.number + 2}">
+                <a class="page-link" th:href="@{/admin/items(page=${i})}" th:text="${i + 1}">1</a>
+            </li>
+            
+            <li class="page-item" th:classappend="${!itemPage.hasNext()} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/items(page=${itemPage.number + 1})}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${itemPage.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/items(page=${itemPage.totalPages - 1})}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        </ul>
+        <div class="text-center text-muted small mt-2">
+            全 <span th:text="${itemPage.totalElements}"></span> 件中 
+            <span th:text="${itemPage.number * itemPage.size + 1}"></span> - 
+            <span th:text="${itemPage.last ? itemPage.totalElements : (itemPage.number + 1) * itemPage.size}"></span> 件目を表示
+        </div>
+    </nav>
+</main>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!-- src/main/resources/templates/admin_departments.html (新規) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>部署マスタ管理 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <h2 class="mb-4">部署マスタ管理</h2>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold">新規部署登録</div>
+                <div class="card-body">
+                    <form th:action="@{/admin/departments}" method="post" th:object="${departmentForm}">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">部署名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" th:field="*{name}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">登録する</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold">登録済み部署一覧</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>部署ID</th>
+                                <th>部署名</th>
+                                <th>アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="d : ${departments}">
+                                <td th:text="${d.id}"></td>
+                                <td class="fw-bold" th:text="${d.name}"></td>
+                                <td>
+                                    <form th:action="@{/admin/departments/{id}/delete(id=${d.id})}" method="post" class="m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('この部署を削除しますか？\n※所属している社員がいる場合はエラーになります。');">削除</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(departments)}">
+                                <td colspan="3" class="text-center text-muted py-4">登録されている部署がありません。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

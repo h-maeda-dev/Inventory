@@ -1,0 +1,94 @@
+<!-- src/main/resources/templates/admin_users.html (修正) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>ユーザー管理 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <h2 class="mb-4">ユーザー(社員)管理</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold">新規ユーザー登録</div>
+                <div class="card-body">
+                    <form th:action="@{/admin/users}" method="post" th:object="${employeeForm}">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">社員名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" th:field="*{name}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">メールアドレス <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'" th:field="*{email}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">初期パスワード <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'" th:field="*{password}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">所属部署 <span class="text-danger">*</span></label>
+                            <select class="form-select" th:classappend="${#fields.hasErrors('departmentId')} ? 'is-invalid'" th:field="*{departmentId}">
+                                <option value="">選択してください</option>
+                                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('departmentId')}" th:errors="*{departmentId}"></div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">権限</label>
+                            <select class="form-select" th:field="*{role}">
+                                <option value="USER">一般社員 (USER)</option>
+                                <option value="ADMIN">管理者 (ADMIN)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">登録する</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold">登録済み社員一覧</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>社員ID</th>
+                                <th>表示名</th>
+                                <th>メールアドレス</th>
+                                <th>権限</th>
+                                <th class="text-center">アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="e : ${users}">
+                                <td th:text="${e.id}"></td>
+                                <td class="fw-bold" th:text="${e.displayName}"></td>
+                                <td th:text="${e.email}"></td>
+                                <td>
+                                    <span th:if="${e.role.name() == 'ADMIN'}" class="badge bg-danger">管理者</span>
+                                    <span th:if="${e.role.name() == 'USER'}" class="badge bg-secondary">一般</span>
+                                </td>
+                                <td class="text-center">
+									<div class="d-flex justify-content-center gap-2">
+									 <!-- 追加: 編集ボタン -->
+									<a th:href="@{/admin/users/{id}/edit(id=${e.id})}" class="btn btn-sm btn-outline-primary">編集</a>
+                                    <form th:action="@{/admin/users/{id}/delete(id=${e.id})}" method="post" class="m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('削除しますか？');">削除</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(users)}">
+                                <td colspan="5" class="text-center text-muted py-4">社員が登録されていません。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

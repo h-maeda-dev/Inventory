@@ -1,0 +1,104 @@
+<!-- src/main/resources/templates/item_detail.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>物品詳細・申請 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>物品詳細・申請</h2>
+        <a th:href="@{/items}" class="btn btn-outline-secondary">検索一覧へ戻る</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white fw-bold">品目情報</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="text-muted small">品目種別</span><br>
+                        <span th:if="${itemDto.itemType == 'EQUIPMENT'}" class="badge bg-info text-dark mt-1">備品 (返却が必要)</span>
+                        <span th:if="${itemDto.itemType == 'CONSUMABLE'}" class="badge bg-secondary mt-1">消耗品 (消費・使い切り)</span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-muted small">カテゴリ</span><br>
+                        <span class="fs-5" th:text="${itemDto.category}"></span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-muted small">品名</span><br>
+                        <span class="fs-4 fw-bold" th:text="${itemDto.name}"></span>
+                    </div>
+                    
+                    <div th:if="${itemDto.itemType == 'CONSUMABLE'}" class="mb-3 p-3 bg-light rounded">
+                        <span class="text-muted small">現在の在庫数</span><br>
+                        <span class="fs-3 fw-bold text-primary" th:text="${itemDto.stockQuantity}"></span><span class="fs-5"> 個</span>
+                    </div>
+                    
+                    <div th:if="${itemDto.itemType == 'EQUIPMENT'}" class="mb-3 p-3 bg-light rounded">
+                        <span class="text-muted small">現在貸出可能な個体数</span><br>
+                        <span class="fs-3 fw-bold text-primary" th:text="${#lists.size(itemDto.availableUnits)}"></span><span class="fs-5"> 個</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 h-100 border-top border-primary border-4">
+                <div class="card-header bg-white fw-bold">申請フォーム</div>
+                <div class="card-body p-4">
+                    <div th:if="${(itemDto.itemType == 'CONSUMABLE' and itemDto.stockQuantity <= 0) or (itemDto.itemType == 'EQUIPMENT' and #lists.isEmpty(itemDto.availableUnits))}" class="alert alert-warning">
+                        現在、申請可能な在庫（または個体）がありません。
+                    </div>
+
+                    <div th:unless="${(itemDto.itemType == 'CONSUMABLE' and itemDto.stockQuantity <= 0) or (itemDto.itemType == 'EQUIPMENT' and #lists.isEmpty(itemDto.availableUnits))}">
+                        <form th:action="@{/requests}" method="post" th:object="${requestForm}">
+                            <input type="hidden" th:field="*{itemId}" />
+                            <input type="hidden" th:field="*{version}" />
+
+                            <!-- 事由の選択追加 -->
+                            <div class="mb-4">
+                                <label for="requestReasonId" class="form-label fw-bold">申請事由 <span class="text-danger">*</span></label>
+                                <select class="form-select" th:classappend="${#fields.hasErrors('requestReasonId')} ? 'is-invalid'" id="requestReasonId" th:field="*{requestReasonId}">
+                                    <option value="">選択してください</option>
+                                    <option th:each="r : ${requestReasons}" th:value="${r.id}" th:text="${r.reasonText}"></option>
+                                </select>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('requestReasonId')}" th:errors="*{requestReasonId}"></div>
+                            </div>
+                            
+                            <div th:if="${itemDto.itemType == 'EQUIPMENT'}">
+                                <div class="mb-4">
+                                    <label for="equipmentUnitId" class="form-label fw-bold">貸出希望の個体（管理番号） <span class="text-danger">*</span></label>
+                                    <select class="form-select" th:classappend="${#fields.hasErrors('equipmentUnitId')} ? 'is-invalid'" id="equipmentUnitId" th:field="*{equipmentUnitId}">
+                                        <option value="">選択してください</option>
+                                        <option th:each="u : ${itemDto.availableUnits}" th:value="${u.id}" th:text="${u.managementCode}"></option>
+                                    </select>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('equipmentUnitId')}" th:errors="*{equipmentUnitId}"></div>
+                                </div>
+                                <!-- dueDateの手動入力廃止 -->
+                            </div>
+
+                            <div th:if="${itemDto.itemType == 'CONSUMABLE'}" class="mb-4">
+                                <label for="quantity" class="form-label fw-bold">申請数量 <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" th:classappend="${#fields.hasErrors('quantity')} ? 'is-invalid'" id="quantity" th:field="*{quantity}" min="1" th:max="${itemDto.stockQuantity}">
+                            </div>
+
+                            <!-- 補足テキストエリア -->
+                            <div class="mb-4">
+                                <label for="requestNote" class="form-label fw-bold">補足 (任意)</label>
+                                <textarea class="form-control" id="requestNote" th:field="*{requestNote}" rows="3"></textarea>
+                            </div>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">申請を提出する</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

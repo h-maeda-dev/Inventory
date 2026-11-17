@@ -1,0 +1,112 @@
+<!-- src/main/resources/templates/dashboard.html (完全版) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>ダッシュボード - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <h2 class="mb-4">ダッシュボード</h2>
+
+    <div class="row">
+        <!-- 貸出中の備品・返却期限 -->
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-warning">
+                <div class="card-header bg-warning text-dark fw-bold">
+                    貸出中の備品・返却期限
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>申請ID</th>
+                                <th>品目名</th>
+                                <th>管理番号</th>
+                                <th>返却予定日</th>
+                                <th>アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="req : ${borrowingRequests}">
+                                <td th:text="${req.id}"></td>
+                                <td th:text="${req.itemName}"></td>
+                                <td th:text="${req.managementCode}"></td>
+                                <td>
+                                    <span th:text="${#temporals.format(req.dueDate, 'yyyy-MM-dd')}"></span>
+                                    <span th:if="${req.dueDate != null and req.dueDate.isBefore(T(java.time.LocalDateTime).now())}" 
+                                          class="badge bg-danger ms-2">期限超過</span>
+                                </td>
+                                <td>
+                                    <form th:action="@{/requests/{id}/return(id=${req.id})}" method="post" class="m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('返却してよろしいですか？');">返却する</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(borrowingRequests)}">
+                                <td colspan="5" class="text-center text-muted py-3">現在貸出中の備品はありません。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 自身の申請状況一覧 -->
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white fw-bold">
+                    最近の申請状況
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>申請日時</th>
+                                <th>申請種別</th>
+                                <th>内容</th>
+                                <th>ステータス</th>
+                                <th>アクション</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="req : ${myRequests}">
+                                <td th:text="${#temporals.format(req.requestedAt, 'yyyy-MM-dd HH:mm')}"></td>
+                                <td>
+                                    <span th:if="${req.requestType == 'BORROW'}" class="badge bg-info text-dark">備品貸出</span>
+                                    <span th:if="${req.requestType == 'CONSUME'}" class="badge bg-secondary">消耗品</span>
+                                </td>
+                                <td>
+                                    <span th:if="${req.requestType == 'BORROW'}">
+                                        <span th:text="${req.itemName}"></span>
+                                        <small class="text-muted">(管理番号: <span th:text="${req.managementCode}"></span>)</small>
+                                    </span>
+                                    <span th:if="${req.requestType == 'CONSUME'}">
+                                        <span th:text="${req.itemName}"></span>
+                                        <small class="text-muted">(申請数: <span th:text="${req.quantity}"></span>)</small>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:if="${req.status == 'PENDING'}" class="badge bg-warning text-dark">申請中</span>
+                                    <span th:if="${req.status == 'APPROVED'}" class="badge bg-success">承認済</span>
+                                    <span th:if="${req.status == 'REJECTED'}" class="badge bg-danger">却下</span>
+                                    <span th:if="${req.status == 'RETURNED'}" class="badge border text-dark">返却済</span>
+                                    <span th:if="${req.status == 'CANCELED'}" class="badge bg-light text-dark">キャンセル</span>
+                                </td>
+                                <td>
+                                    <form th:if="${req.status == 'PENDING'}" th:action="@{/requests/{id}/cancel(id=${req.id})}" method="post" class="m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('この申請をキャンセルしますか？');">キャンセル</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(myRequests)}">
+                                <td colspan="5" class="text-center text-muted py-3">申請履歴がありません。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

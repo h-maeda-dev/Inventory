@@ -1,0 +1,63 @@
+<!-- src/main/resources/templates/admin_workflow.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>承認ワークフロー(管理者) - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <h2 class="mb-4">未承認の申請一覧</h2>
+
+    <div class="card shadow-sm border-danger">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>申請ID</th>
+                        <th>申請日時</th>
+                        <th>申請者</th>
+                        <th>種別</th>
+                        <th>内容 (品名 / 詳細)</th>
+                        <th>アクション</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="req : ${pendingRequests}">
+                        <td th:text="${req.id}"></td>
+                        <td th:text="${#temporals.format(req.requestedAt, 'yyyy-MM-dd HH:mm')}"></td>
+                        <td th:text="${req.username}"></td>
+                        <td>
+                            <span th:if="${req.requestType == 'BORROW'}" class="badge bg-info text-dark">備品貸出</span>
+                            <span th:if="${req.requestType == 'CONSUME'}" class="badge bg-secondary">消耗品</span>
+                        </td>
+                        <td>
+                            <span th:if="${req.requestType == 'BORROW'}">
+                                <span class="fw-bold" th:text="${req.itemName}"></span><br>
+                                <small class="text-muted">管理番号: <span th:text="${req.managementCode}"></span></small><br>
+                                <small class="text-danger">返却予定: <span th:text="${#temporals.format(req.dueDate, 'yyyy-MM-dd')}"></span></small>
+                            </span>
+                            <span th:if="${req.requestType == 'CONSUME'}">
+                                <span class="fw-bold" th:text="${req.itemName}"></span><br>
+                                <small class="text-muted">申請数量: <span th:text="${req.quantity}"></span> 個</small>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <form th:action="@{/admin/requests/{id}/approve(id=${req.id})}" method="post" class="m-0">
+                                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('この申請を承認します。よろしいですか？');">承認</button>
+                                </form>
+                                <a th:href="@{/admin/requests/{id}/reject-confirm(id=${req.id})}" class="btn btn-sm btn-outline-danger">却下</a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pendingRequests)}">
+                        <td colspan="6" class="text-center text-muted py-4">現在、未承認の申請はありません。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!-- src/main/resources/templates/admin_item_adjust.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>在庫数調整 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h3 class="mb-0">在庫数調整</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info py-2">
+                        <strong>対象品目:</strong> <span th:text="${item.name}"></span><br>
+                        <strong>安全在庫基準:</strong> <span th:text="${item.safeStockCount}"></span> 個
+                    </div>
+
+                    <form th:action="@{/admin/items/{id}/adjust(id=${item.id})}" method="post" th:object="${adjustForm}">
+                        <input type="hidden" th:field="*{version}" />
+                        <div class="mb-4">
+                            <label for="stockQuantity" class="form-label fw-bold">変更後の在庫数 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control form-control-lg" th:classappend="${#fields.hasErrors('stockQuantity')} ? 'is-invalid'"
+                                   id="stockQuantity" th:field="*{stockQuantity}" min="0">
+                            
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}"></div>
+                            <div class="form-text text-muted mt-2">※実地棚卸等の結果に基づき、正しい数量を入力してください。</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between border-top pt-4">
+                            <a th:href="@{/admin/items}" class="btn btn-outline-secondary">キャンセル</a>
+                            <button type="submit" class="btn btn-warning px-5 fw-bold">在庫を更新する</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!-- src/main/resources/templates/admin_item_units.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>個体管理 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>個体管理: <span th:text="${item.name}" class="text-primary"></span></h2>
+        <a th:href="@{/admin/items}" class="btn btn-outline-secondary">品目一覧へ戻る</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold">
+                    新規管理番号の追加
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/admin/items/{id}/units(id=${item.id})}" method="post" th:object="${unitForm}">
+                        <div class="mb-3">
+                            <label for="managementCode" class="form-label">管理番号 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('managementCode')} ? 'is-invalid' : ''" 
+                                   id="managementCode" th:field="*{managementCode}" placeholder="例: PC-2026-001">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('managementCode')}" th:errors="*{managementCode}"></div>
+                            <div class="form-text text-muted">※システム内で一意の番号を入力してください。</div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">追加する</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm border-0 mt-3">
+                <div class="card-body bg-light">
+                    <h6 class="text-muted mb-2">品目情報</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li><strong>ID:</strong> <span th:text="${item.id}"></span></li>
+                        <li><strong>カテゴリ:</strong> <span th:text="${item.category}"></span></li>
+                        <li><strong>登録個体数:</strong> <span th:text="${#lists.size(item.equipmentUnits)}"></span> 個</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold">
+                    登録済み個体一覧
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>個体ID</th>
+                                <th>管理番号</th>
+                                <th>現在のステータス</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="unit : ${item.equipmentUnits}">
+                                <td th:text="${unit.id}"></td>
+                                <td class="fw-bold" th:text="${unit.managementCode}"></td>
+                                <td>
+                                    <span th:if="${unit.status.name() == 'AVAILABLE'}" class="badge bg-success">貸出可能</span>
+                                    <span th:if="${unit.status.name() == 'RESERVED'}" class="badge bg-warning text-dark">仮押さえ中 (申請中)</span>
+                                    <span th:if="${unit.status.name() == 'IN_USE'}" class="badge bg-danger">貸出中</span>
+                                    <span th:if="${unit.status.name() == 'DISPOSED'}" class="badge bg-secondary">廃棄・紛失</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(item.equipmentUnits)}">
+                                <td colspan="3" class="text-center text-muted py-4">登録されている個体はありません。左のフォームから追加してください。</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!-- src/main/resources/templates/admin_item_form.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>新規品目登録 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h3 class="mb-0">新規品目登録</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/admin/items/new}" method="post" th:object="${itemForm}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-bold">品名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''" 
+                                   id="name" th:field="*{name}" placeholder="例: ボールペン黒">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category" class="form-label fw-bold">カテゴリ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('category')} ? 'is-invalid' : ''" 
+                                   id="category" th:field="*{category}" placeholder="例: 文房具">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold d-block">品目種別 <span class="text-danger">*</span></label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="itemType" id="typeEquipment" 
+                                       value="EQUIPMENT" th:field="*{itemType}" onchange="toggleStockInput()">
+                                <label class="form-check-label" for="typeEquipment">備品 (個体で貸出管理)</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="itemType" id="typeConsumable" 
+                                       value="CONSUMABLE" th:field="*{itemType}" onchange="toggleStockInput()">
+                                <label class="form-check-label" for="typeConsumable">消耗品 (数量で消費管理)</label>
+                            </div>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('itemType')}" th:errors="*{itemType}"></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="safeStockCount" class="form-label fw-bold">安全在庫数 (アラート基準) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" th:classappend="${#fields.hasErrors('safeStockCount')} ? 'is-invalid' : ''" 
+                                       id="safeStockCount" th:field="*{safeStockCount}" min="0" value="0">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('safeStockCount')}" th:errors="*{safeStockCount}"></div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="stockQuantity" class="form-label fw-bold">初期在庫数</label>
+                                <input type="number" class="form-control" th:classappend="${#fields.hasErrors('stockQuantity')} ? 'is-invalid' : ''" 
+                                       id="stockQuantity" th:field="*{stockQuantity}" min="0">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}"></div>
+                                <div class="form-text text-muted" id="stockHelpText">※消耗品の場合のみ入力してください。備品は登録後に個体管理画面で追加します。</div>
+                            </div>
+                        </div>
+
+                        <!-- 追加：レンタル期限設定 (備品時のみ表示) -->
+                        <div class="row mt-3" id="rentalPeriodSection" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <label for="rentalPeriodValue" class="form-label fw-bold">レンタル期限設定 <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" th:classappend="${#fields.hasErrors('rentalPeriodValue')} ? 'is-invalid' : ''" id="rentalPeriodValue" th:field="*{rentalPeriodValue}" min="1">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('rentalPeriodValue')}" th:errors="*{rentalPeriodValue}"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="rentalPeriodUnit" class="form-label fw-bold">期限の単位</label>
+                                <select class="form-select" th:field="*{rentalPeriodUnit}" id="rentalPeriodUnit">
+                                    <option value="WEEK">週</option>
+									<option value="MONTH">月</option>
+                                    <option value="YEAR">年</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4 border-top pt-4">
+                            <a th:href="@{/admin/items}" class="btn btn-outline-secondary">キャンセルして戻る</a>
+                            <button type="submit" class="btn btn-primary px-5">登録する</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function toggleStockInput() {
+            const isEquipment = document.getElementById('typeEquipment').checked;
+            const stockInput = document.getElementById('stockQuantity');
+            const periodSection = document.getElementById('rentalPeriodSection');
+            if (isEquipment) {
+                stockInput.disabled = true;
+                stockInput.value = '';
+                periodSection.style.display = 'flex';
+            } else {
+                stockInput.disabled = false;
+                periodSection.style.display = 'none';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', toggleStockInput);
+    </script>
+</main>
+</body>
+</html>

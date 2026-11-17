@@ -1,0 +1,41 @@
+<!-- src/main/resources/templates/admin_reset_approvals.html (新規) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>パスワードリセット承認 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <h2 class="mb-4">パスワードリセット申請一覧</h2>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>申請日時</th>
+                        <th>申請者（社員ID）</th>
+                        <th>登録メールアドレス</th>
+                        <th>アクション</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="req : ${pendingResets}">
+                        <td th:text="${#temporals.format(req.requestedAt, 'yyyy-MM-dd HH:mm')}"></td>
+                        <td th:text="${req.employee.displayName}"></td>
+                        <td th:text="${req.employee.email}"></td>
+                        <td>
+                            <form th:action="@{/admin/reset-approvals/{id}/approve(id=${req.id})}" method="post" class="m-0">
+                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('承認し、URL付きメールを送信しますか？');">承認（メール送信）</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(pendingResets)}">
+                        <td colspan="4" class="text-center text-muted py-4">未承認の申請はありません。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

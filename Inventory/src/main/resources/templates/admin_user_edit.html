@@ -1,0 +1,66 @@
+<!-- src/main/resources/templates/admin_user_edit.html (新規作成) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>社員情報編集 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h3 class="mb-0">社員情報編集</h3>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/admin/users/{id}/edit(id=${employeeEditForm.id})}" method="post" th:object="${employeeEditForm}">
+                        <input type="hidden" th:field="*{id}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">社員名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'" th:field="*{name}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">メールアドレス <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'" th:field="*{email}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">パスワード</label>
+                            <input type="password" class="form-control" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'" th:field="*{password}">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                            <div class="form-text text-muted">※パスワードを変更する場合のみ入力してください（8文字以上、大文字・小文字・数字含む）</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">所属部署 <span class="text-danger">*</span></label>
+                            <select class="form-select" th:classappend="${#fields.hasErrors('departmentId')} ? 'is-invalid'" th:field="*{departmentId}">
+                                <option value="">選択してください</option>
+                                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.name}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('departmentId')}" th:errors="*{departmentId}"></div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">権限</label>
+                            <select class="form-select" th:field="*{role}">
+                                <option value="USER">一般社員 (USER)</option>
+                                <option value="ADMIN">管理者 (ADMIN)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4 border-top pt-4">
+                            <a th:href="@{/admin/users}" class="btn btn-outline-secondary">キャンセル</a>
+                            <button type="submit" class="btn btn-primary px-5">更新する</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

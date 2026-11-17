@@ -1,0 +1,111 @@
+<!-- src/main/resources/templates/admin_history.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>貸出履歴照会 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>貸出・消費履歴照会</h2>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>申請ID</th>
+                            <th>申請日時</th>
+                            <th>申請者</th>
+                            <th>種別</th>
+                            <th>内容 (品名 / 詳細)</th>
+                            <th>ステータス</th>
+                            <th>返却/完了日</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="req : ${historyPage.content}">
+                            <td th:text="${req.id}"></td>
+                            <td th:text="${#temporals.format(req.requestedAt, 'yyyy-MM-dd HH:mm')}"></td>
+                            <td class="fw-bold" th:text="${req.employeeDisplayName}"></td>
+                            <td>
+                                <span th:if="${req.requestType == 'BORROW'}" class="badge bg-info text-dark">備品貸出</span>
+                                <span th:if="${req.requestType == 'CONSUME'}" class="badge bg-secondary">消耗品</span>
+                            </td>
+                            <td>
+                                <span th:if="${req.requestType == 'BORROW'}">
+                                    <span class="fw-bold" th:text="${req.itemName}"></span><br>
+                                    <small class="text-muted">管理番号: <span th:text="${req.managementCode}"></span></small>
+                                </span>
+                                <span th:if="${req.requestType == 'CONSUME'}">
+                                    <span class="fw-bold" th:text="${req.itemName}"></span><br>
+                                    <small class="text-muted">消費数量: <span th:text="${req.quantity}"></span> 個</small>
+                                </span>
+                            </td>
+                            <td>
+                                <span th:if="${req.status == 'PENDING'}" class="badge bg-warning text-dark">申請中</span>
+                                <span th:if="${req.status == 'APPROVED'}" class="badge bg-success">承認済(貸出中)</span>
+                                <span th:if="${req.status == 'REJECTED'}" class="badge bg-danger">却下</span>
+                                <span th:if="${req.status == 'RETURNED'}" class="badge border text-dark">返却済</span>
+                                <span th:if="${req.status == 'CANCELED'}" class="badge bg-light text-dark">キャンセル</span>
+                            </td>
+                            <td>
+                                <span th:if="${req.status == 'RETURNED'}" th:text="${#temporals.format(req.returnedAt, 'yyyy-MM-dd')}"></span>
+                                <span th:if="${req.status == 'APPROVED' and req.requestType == 'CONSUME'}" class="text-muted small">消費済</span>
+                                <span th:if="${req.status == 'APPROVED' and req.requestType == 'BORROW'}" class="text-danger small">
+                                    予定: <span th:text="${#temporals.format(req.dueDate, 'yyyy-MM-dd')}"></span>
+                                </span>
+                                <span th:if="${req.status == 'REJECTED' or req.status == 'PENDING' or req.status == 'CANCELED'}" class="text-muted">-</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${historyPage.empty}">
+                            <td colspan="7" class="text-center text-muted py-4">履歴データがありません。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ページネーション -->
+    <nav th:if="${historyPage.totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${historyPage.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/history(page=0)}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${!historyPage.hasPrevious()} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/history(page=${historyPage.number - 1})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, historyPage.totalPages - 1)}" 
+                th:classappend="${i == historyPage.number} ? 'active'"
+                th:if="${i >= historyPage.number - 2 and i <= historyPage.number + 2}">
+                <a class="page-link" th:href="@{/admin/history(page=${i})}" th:text="${i + 1}">1</a>
+            </li>
+            
+            <li class="page-item" th:classappend="${!historyPage.hasNext()} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/history(page=${historyPage.number + 1})}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item" th:classappend="${historyPage.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/admin/history(page=${historyPage.totalPages - 1})}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        </ul>
+        <div class="text-center text-muted small mt-2">
+            全 <span th:text="${historyPage.totalElements}"></span> 件中 
+            <span th:text="${historyPage.number * historyPage.size + 1}"></span> - 
+            <span th:text="${historyPage.last ? historyPage.totalElements : (historyPage.number + 1) * historyPage.size}"></span> 件目を表示
+        </div>
+    </nav>
+</main>
+</body>
+</html>

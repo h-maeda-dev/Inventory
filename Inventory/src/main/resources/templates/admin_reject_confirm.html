@@ -1,0 +1,46 @@
+<!-- src/main/resources/templates/admin_reject_confirm.html (新規作成) -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::title}, ~{::main})}">
+<head>
+    <title>却下確認 - 備品在庫管理システム</title>
+</head>
+<body>
+<main>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 border-top border-danger border-4">
+                <div class="card-header bg-white fw-bold">申請の却下処理</div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info py-2">
+                        <strong>対象申請ID:</strong> <span th:text="${requestDto.id}"></span><br>
+                        <strong>申請者:</strong> <span th:text="${requestDto.username}"></span><br>
+                        <strong>品名:</strong> <span th:text="${requestDto.itemName}"></span>
+                    </div>
+
+                    <form th:action="@{/admin/requests/{id}/reject(id=${requestDto.id})}" method="post" th:object="${rejectForm}">
+                        <div class="mb-4">
+                            <label for="rejectReasonId" class="form-label fw-bold">却下事由 <span class="text-danger">*</span></label>
+                            <select class="form-select" th:classappend="${#fields.hasErrors('rejectReasonId')} ? 'is-invalid'" id="rejectReasonId" th:field="*{rejectReasonId}">
+                                <option value="">選択してください</option>
+                                <option th:each="r : ${rejectReasons}" th:value="${r.id}" th:text="${r.reasonText}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('rejectReasonId')}" th:errors="*{rejectReasonId}"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="rejectNote" class="form-label fw-bold">却下理由の詳細 (任意)</label>
+                            <textarea class="form-control" id="rejectNote" th:field="*{rejectNote}" rows="4"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between border-top pt-4">
+                            <a th:href="@{/admin}" class="btn btn-outline-secondary">キャンセル</a>
+                            <button type="submit" class="btn btn-danger px-5 fw-bold">却下を確定する</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
